@@ -6,62 +6,60 @@ using EchoAuth.Core.Models.AccessTokens;
 
 namespace EchoAuth.Core.Managers
 {
+    /// <summary>
+    /// Responsible for processing Authorization Code Grant and Implicit Grant requests. Methods are used by /authorize endpoint
+    /// </summary>
     public class AuthorizationManager : IAuthorizationManager
     {
-        private readonly IClientValidatorEngine _clientValidatorEngine;
-        private readonly IAuthorizationCodeProviderEngine _authorizationCodeProviderEngine;
+        private readonly IClientAuthenticationEngine _clientAuthenticationEngine;
+        private readonly IAuthorizationDataValidatorEngine _authorizationDataValidatorEngine;
 
-        public AuthorizationManager(IClientValidatorEngine clientValidatorEngine, IAuthorizationCodeProviderEngine authorizationCodeProviderEngine)
+        public AuthorizationManager(IClientAuthenticationEngine clientAuthenticationEngine, IAuthorizationDataValidatorEngine authorizationDataValidatorEngine)
         {
-            _clientValidatorEngine = clientValidatorEngine;
-            _authorizationCodeProviderEngine = authorizationCodeProviderEngine;
+            _clientAuthenticationEngine = clientAuthenticationEngine;
+            _authorizationDataValidatorEngine = authorizationDataValidatorEngine;
         }
 
-        public async Task<AuthResult<AuthorizationCodeResponse>> AuthorizationCode(string clientId, Uri redirectUri = null, string scope = null)
+        public async Task<TokenResponse<AuthorizationCodeResponse>> AuthorizationCode(string clientId, Uri redirectUri = null, string scope = null, string state = null)
         {
             if (string.IsNullOrWhiteSpace(clientId))
             {
-                return AuthResult<AuthorizationCodeResponse>.Create(ErrorCode.InvalidRequest, "Invalid clientId");
+                return TokenResponse<AuthorizationCodeResponse>.Create(TokenErrorCode.InvalidRequest, "Invalid clientId");
             }
 
-            if (!await _clientValidatorEngine.IsValidClient(clientId, redirectUri))
+            if (!await _clientAuthenticationEngine.Authenticate(clientId, redirectUri))
             {
-                return AuthResult<AuthorizationCodeResponse>.Create(ErrorCode.AccessDenied, null);
+                return TokenResponse<AuthorizationCodeResponse>.Create(TokenErrorCode.InvalidClient, null);
             }
 
-            //            var code = await _authorizationCodeProviderEngine.Generate(clientId, null, scope, redirectUri);
+            //            var code = await _authorizationDataValidatorEngine.Generate(clientId, null, scope, redirectUri);
 
             //            var response = new AuthorizationCodeResponse { Code = code, State = state };
 
-            //            return AuthResult<AuthorizationCodeResponse>.Create(response);
+            //            return TokenResponse<AuthorizationCodeResponse>.Create(response);
 
             throw new NotImplementedException();
         }
 
-        public Task<AuthResult<AuthorizationCodeResponse>> AuthorizationCode(string clientId, Uri redirectUri = null, string scope = null, string state = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<AuthResult<ImplicitGrantResponse>> ImplicitGrant(string clientId, Uri redirectUri = null, string scope = null, string state = null)
+        public async Task<TokenResponse<ImplicitGrantResponse>> ImplicitGrant(string clientId, Uri redirectUri = null, string scope = null, string state = null)
         {
             if (string.IsNullOrWhiteSpace(clientId))
             {
-                return AuthResult<ImplicitGrantResponse>.Create(ErrorCode.InvalidRequest, "Invalid clientId", state);
+                return TokenResponse<ImplicitGrantResponse>.Create(TokenErrorCode.InvalidRequest, "Invalid clientId", state);
             }
 
-            if (!await _clientValidatorEngine.IsValidClient(clientId, redirectUri))
+            if (!await _clientAuthenticationEngine.Authenticate(clientId, redirectUri))
             {
-                return AuthResult<ImplicitGrantResponse>.Create(ErrorCode.AccessDenied, null, state);
+                return TokenResponse<ImplicitGrantResponse>.Create(TokenErrorCode.AccessDenied, null, state);
             }
 
             throw new NotImplementedException();
 
-            //var code = await _authorizationCodeProviderEngine.Generate(clientId, redirectUri);
+            //var code = await _authorizationDataValidatorEngine.Generate(clientId, redirectUri);
 
             //var response = new ImplicitGrantResponse { AccessToken = code, State = state };
 
-            //return AuthResult<ImplicitGrantResponse>.Create(response);
+            //return TokenResponse<ImplicitGrantResponse>.Create(response);
         }
     }
 }

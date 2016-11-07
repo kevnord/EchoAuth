@@ -3,10 +3,10 @@ using Newtonsoft.Json;
 
 namespace EchoAuth.Core.Models
 {
-    public class Error
+    public class Error<TErrorCode>
     {
         [JsonProperty("error_code")]
-        public ErrorCode ErrorCode { get; set; }
+        public TErrorCode ErrorCode { get; set; }
         [JsonProperty("error_description")]
         public string ErrorDescription { get; set; }
         [JsonProperty("error_uri")]

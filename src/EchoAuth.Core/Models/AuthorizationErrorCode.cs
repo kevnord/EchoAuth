@@ -2,9 +2,10 @@
 
 namespace EchoAuth.Core.Models
 {
-    public enum ErrorCode
+    public enum AuthorizationErrorCode
     {
-        NotSet,
+        [JsonProperty("none")]
+        None,
         [JsonProperty("invalid_request")]
         InvalidRequest,
         [JsonProperty("unauthorized_client")]
